@@ -1,0 +1,98 @@
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+\usetheme{metropolis}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[backend=biber, style=authoryear]{biblatex}
+
+\newcommand{\tocentry}[3]{%
+  \makebox[\linewidth][l]{#1.\enspace #2\dotfill #3}%
+}
+\newcommand{\tocsubentry}[2]{%
+  {\small\itshape\hspace{1.5em}#1.\enspace #2}%
+}
+\addbibresource{refs.bib}
+
+\setbeamerfont{caption}{size=\scriptsize}
+
+\title{(Multiple) Correspondence Analysis}
+\subtitle{A 20 minute tutorial}
+\author{Harry}
+\date{17th April, 2026}
+% \institute{Collective Minds @ CSH}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Contents}
+  \tocentry{1}{What is correspondence analysis?}{7 min}\\[0.25em]
+  \tocsubentry{a}{Visualising categorical data}\\[0.15em]
+  \tocsubentry{b}{Distances from independence}\\[0.6em]
+  \tocentry{2}{Example no.\ 1: hair and eye colour}{7 min}\\[0.25em]
+  \tocsubentry{a}{Interpreting distances on the plot}\\[0.15em]
+  \tocsubentry{b}{Inertia}\\[0.6em]
+  \tocentry{3}{Example no.\ 2: Vienna election results}{3 min}\\[0.25em]
+  \tocsubentry{a}{Different ways of representing CA biplots}\\[0.6em]
+  \tocentry{4}{Multiple correspondence analysis}{3 min}
+\end{frame}
+
+\section{What is Correspondence Analysis?}
+
+\begin{frame}{\enquote{Correspondence analysis is PCA for categorical data}}
+  \begin{itemize}
+    \item In a large, multi-variate data set, we often use PCA to identify which parts of the data provide the best low-dimensional description of the data.
+    \item This relies on the data being \textit{ordered}, which is trivially true for nominal data, and a reasonable reach for binary data - but what about categorical data?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Visualizing categorical data}
+  \begin{itemize}
+    \item It doesn't make sense to think of an ordering with categorical data for $n > 2$.
+    \item Imagine we had a survey with multiple, distinct outcomes for participants to select. How could we visualize the results of such a survey?
+  \end{itemize}
+  \uncover<2>{
+    \begin{figure}
+      \centering
+      \includegraphics[height=0.48\textheight]{abc_mobility.png}
+      \caption{Barycentric coordinates for mobility in cities around the world, from our very own \textcite{prieto-curielABCMobility2024}.}
+    \end{figure}
+  }
+\end{frame}
+
+\begin{frame}{Extending this to higher dimensions}
+  \begin{itemize}
+    \item The key point that lets up represent the mobility data on a traingle like this is that the category counts (proportions) have to sum up to 1.
+    \item Effectively, this is transforming our \textit{categorical data} into textit{compositional data}.
+    \item As a result, we lose a \textbf{degree of freedom} compared to representing these as distances along orthogonal axes, and consequently we can display $N$ categories in only $N-1$ dimensions. 
+  \end{itemize}
+  \begin{figure}
+    \centering
+    \includegraphics[height=0.3\textheight]{simplices.png}
+    \caption{Simplices in different dimensions. Illustration from \parencite{chungPersistentHomologyApproach2019}.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Example 1: hair and eye color}
+  \begin{table}
+    \centering
+    \begin{tabular}{lrrrr}
+      \toprule
+      & \textbf{Brown} & \textbf{Blue} & \textbf{Hazel} & \textbf{Green} \\
+      \midrule
+      \textbf{Black} & 68 & 20 & 15 & 5 \\
+      \textbf{Brown} & 119 & 84 & 54 & 29 \\
+      \textbf{Red}   & 26 & 17 & 14 & 14 \\
+      \textbf{Blond} & 7 & 94 & 10 & 16 \\
+      \bottomrule
+    \end{tabular}
+    \caption{Hair and eye colour counts ($n = 592$). Data from \parencite{sneeGraphicalDisplayTwoWay1974}.}
+  \end{table}
+\end{frame}
+
+\begin{frame}{References}
+  \printbibliography[heading=none]
+\end{frame}
+
+\end{document}
