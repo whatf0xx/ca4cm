@@ -3,47 +3,124 @@ import pandas as pd
 from prince import MCA
 
 
-TAB_PATH = "./UKDA-5832-tab/tab/ccse_main_sample_file.tab"
-
-MUSIC_TASTE     = ['Rock', 'MJazz', 'World', 'Classica', 'CandW', 'Electron', 'HeavyM', 'Urban']
-MUSIC_KNOWLEDGE = ['Wonderw', 'Stan', 'FourSeas', 'EinStein', 'Symph5', 'KindBlue', 'Oops', 'Chicago']
-VISUAL_ART      = ['ArtM', 'ArtL', 'VanGogh', 'Picasso', 'Kahlo', 'Turner', 'Emin', 'Warhol', 'Lowry']
-FILM            = ['FilmM', 'FilmS', 'FilmL', 'Spielb', 'Hitchc', 'Almodov', 'Bergman', 'Campion', 'Rathnam']
-EATING          = ['EatM', 'EatS', 'EatL']
-PARTICIPATION   = ['Cinema', 'Museum', 'Pub', 'Rockconc', 'Opera', 'Orchconc',
-                   'StatelyH', 'Musical', 'Theatre', 'ArtGall']
-TV              = ['TypProgM', 'TypProgS', 'TypProgL', 'TVProg1', 'TVProg2', 'TVProg3', 'TVHrsWkD']
-SPORT           = ['SportM', 'SportS', 'SportL', 'AnySport']
-READING         = ['WhoDun', 'SciFi', 'Romance', 'Biog', 'Modlit', 'Relig', 'Selfhelp', 'ManyBook']
-SOCDEM          = ['RAge', 'RSex', 'RAgeCat', 'WtFactor']
-
-ACTIVE_VARS = (MUSIC_TASTE + MUSIC_KNOWLEDGE + VISUAL_ART + FILM + EATING +
-               PARTICIPATION + TV + SPORT + READING)
-ALL_VARS    = ACTIVE_VARS + SOCDEM
-
-
 if __name__ == "__main__":
-    tab = pd.read_csv(TAB_PATH, sep="\t")
+    df = pd.read_csv("taste/data.csv")
+    df = df[df["Isup"] == "Active"]            # filters out the excluded participants
+    active_cols = ["TV", "Film", "Art", "Eat"]
+    active = df[active_cols]                   # active columns for the MCA
+    cats = sum(active.nunique().values)        # total no. of categories in data
+               
 
-    tab.columns = tab.columns.str.lower()
-    all_lower   = [v.lower() for v in ALL_VARS]
+    mca = MCA(
+        n_components = cats - len(active_cols),  # categories - no. of variables
+        correction = "benzecri",
+    )
 
-    available = [v for v in all_lower if v in tab.columns]
-    missing   = [v for v in all_lower if v not in tab.columns]
-    if missing:
-        print("Not found (check case):", missing)
+    mca.fit(active)
+    print(summary := mca.eigenvalues_summary.iloc[:3])
+    pct1, pct2, pct3 = summary["% of variance"]
 
-    df = tab[available].copy()
-    # Restore original capitalisation for readability
-    lower_to_orig = {v.lower(): v for v in ALL_VARS}
-    df.columns = [lower_to_orig.get(c, c) for c in df.columns]
+    column_coords = mca.column_coordinates(active)[[0, 1]]
 
-    # Recode don't-know / refusal / skip as NaN
-    for col in df.columns:
-        if df[col].max() <= 9:
-            df[col] = df[col].replace({8: pd.NA, 9: pd.NA, -1: pd.NA})
-        else:
-            df[col] = df[col].replace({98: pd.NA, 99: pd.NA, -1: pd.NA})
+    _parts = column_coords.index.to_series().str.split("__", expand=True)
+    column_coords.index = _parts[1]
+    column_coords["variable"] = _parts[0].values
 
-    print(df.shape)
-    print(df.head())
+    # now we want to calculate the "supplementary point" by projecting these columns into the space as averages of the row profiles that comprise them
+    print("Age categories: ", list(df["Age"].unique()))
+    print("Income categories: ", list(df["Income"].unique()))
+    row_coords = mca.row_coordinates(active)
+    # print(row_coords.head())
+    # print(row_coords.mean(axis=0))  # should be 0 because average row is at the origin
+    age_cats = [
+        "18-24",
+        "25-34",
+        "35-44",
+        "45-54",
+        "55-64",
+        "65+",
+    ]
+    inc_cats = [
+        "GBP: <9",
+        "GBP: 10-19",
+        "GBP: 20-29",
+        "GBP: 30-39",
+        "GBP: 40-59",
+        "GBP: >=60", 
+    ]
+    ages = {age_cat: [] for age_cat in age_cats}
+    incs = {inc_cat: [] for inc_cat in inc_cats}
+    for index, row in df.iterrows():
+        ages[row["Age"]].append(index)
+        if isinstance(row["Income"], str):
+            incs[row["Income"]].append(index)
+
+    age_supp = {
+        k: row_coords.iloc[v].mean(axis=0)[[0, 1]] for k, v in ages.items() 
+    }
+    inc_supp = {
+        k: row_coords.iloc[v].mean(axis=0)[[0, 1]] for k, v in incs.items() 
+    }
+    
+    fig, ax = plt.subplots()
+    colors = {
+        "TV":   "#3863D1",
+        "Film": "#D138B0",
+        "Art":  "#D1A638",
+        "Eat":  "#38D159",
+    }
+    for col in active_cols:
+        pts = column_coords[column_coords["variable"] == col]
+        x, y = pts[0], pts[1]
+        ax.scatter(x, y, color=colors[col], label=col)
+        for label, xi, yi in zip(pts.index, x, y):
+            if col == "TV":
+                label = label.split("-")[1]
+            ax.annotate(
+                    label,
+                    (xi, yi),
+                    textcoords="offset points",
+                    xytext=(5, 5),
+                    fontsize=9,
+                    color=colors[col]
+                )
+
+    age_pts = [a.to_numpy() for a in age_supp.values()]
+    ax.plot(*zip(*age_pts),
+            marker="o",
+            linestyle="dashed",
+            color="gray",
+            label="Age (supp.)")
+    for cat, coords in age_supp.items():
+        ax.annotate(
+                cat,
+                coords.to_numpy(),
+                textcoords="offset points",
+                xytext=(5, 5),
+                fontsize=9,
+                color="gray"
+            )
+
+    inc_pts = [a.to_numpy() for a in inc_supp.values()]
+    ax.plot(*zip(*inc_pts),
+            marker="s",
+            linestyle="dashed",
+            color="brown",
+            label="Income (supp.)")
+    for cat, coords in inc_supp.items():
+        ax.annotate(
+                cat,
+                coords.to_numpy(),
+                textcoords="offset points",
+                xytext=(5, 5),
+                fontsize=9,
+                color="brown"
+            )
+
+    ax.legend()
+    ax.axvline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
+    ax.axhline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
+    ax.set_ylabel(f"Dimension 2 ({pct2} variance)")
+    ax.set_xlabel(f"Dimension 1 ({pct1} variance)")
+
+    plt.show()
