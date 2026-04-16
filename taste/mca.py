@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     mca.fit(active)
     print(summary := mca.eigenvalues_summary.iloc[:3])
-    pct1, pct2, pct3 = summary["% of variance"]
+    pct1, pct2 = mca.percentage_of_variance_[:2]
 
     column_coords = mca.column_coordinates(active)[[0, 1]]
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         k: row_coords.iloc[v].mean(axis=0)[[0, 1]] for k, v in incs.items() 
     }
     
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 5), layout="constrained")
     colors = {
         "TV":   "#3863D1",
         "Film": "#D138B0",
@@ -85,6 +85,23 @@ if __name__ == "__main__":
                     color=colors[col]
                 )
 
+    ax.legend()
+    ax.axvline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
+    ax.axhline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
+    ax.set_ylabel(f"Dimension 2 ({pct2:.1f}% variance)")
+    ax.set_xlabel(f"Dimension 1 ({pct1:.1f}% variance)")
+    fig.savefig("active_taste_cols.pdf", transparent=True)
+    fig1, ax = plt.subplots(figsize=(8, 5), layout="constrained")
+    ax.axvline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
+    ax.axhline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
+    ax.set_ylabel(f"Dimension 2 ({pct2:.1f}% variance)")
+    ax.set_xlabel(f"Dimension 1 ({pct1:.1f}% variance)")
+    ax.set_xlim(-0.6, 0.6)
+    ax.set_ylim(-0.5, 0.5)
+    for col in active_cols:
+        pts = column_coords[column_coords["variable"] == col]
+        x, y = pts[0], pts[1]
+        ax.scatter(x, y, color=colors[col], label=col)
     age_pts = [a.to_numpy() for a in age_supp.values()]
     ax.plot(*zip(*age_pts),
             marker="o",
@@ -118,9 +135,5 @@ if __name__ == "__main__":
             )
 
     ax.legend()
-    ax.axvline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
-    ax.axhline(0, color="k", alpha=0.8, linewidth=0.8, zorder=0)
-    ax.set_ylabel(f"Dimension 2 ({pct2} variance)")
-    ax.set_xlabel(f"Dimension 1 ({pct1} variance)")
-
+    fig1.savefig("supp_taste_cols.pdf", transparent=True)
     plt.show()

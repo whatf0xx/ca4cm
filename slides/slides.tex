@@ -28,15 +28,17 @@
 \maketitle
 
 \begin{frame}{Contents}
-  \tocentry{1}{What is correspondence analysis?}{7 min}\\[0.25em]
-  \tocsubentry{a}{Visualising categorical data}\\[0.15em]
-  \tocsubentry{b}{Distances from independence}\\[0.6em]
-  \tocentry{2}{Example no.\ 1: hair and eye colour}{7 min}\\[0.25em]
-  \tocsubentry{a}{Interpreting distances on the plot}\\[0.15em]
-  \tocsubentry{b}{Inertia}\\[0.6em]
-  \tocentry{3}{Example no.\ 2: Vienna election results}{3 min}\\[0.25em]
-  \tocsubentry{a}{Different ways of representing CA biplots}\\[0.6em]
-  \tocentry{4}{Multiple correspondence analysis}{3 min}
+  \tocentry{1}{Introduction \& Aims}{1 min}\\[0.6em]
+  \tocentry{2}{Defining correspondence analysis and visualizing categorical data}{2 min}\\[0.6em]
+  \tocentry{3}{Example 1: hair and eye color}{2 min}\\[0.6em]
+  \tocentry{4}{Key features of CA and geometry}{3 min}\\[0.6em]
+  \tocentry{5}{Example 2: National elections in Vienna}{2 min}\\[0.6em]
+  \tocentry{6}{Biplot choice and CA recap}{3 min}\\[0.6em]
+  \tocentry{7}{Multiple correspondence analysis}{2 min}\\[0.6em]
+  \tocentry{8}{Example 3: Class and cultural division in the UK}{2 min}\\[0.6em]
+  \tocentry{9}{Supplementary variable analysis}{2 min}\\[0.6em]
+  \tocentry{10}{Summary}{1 min}
+
 \end{frame}
 
 \begin{frame}{Introduction \& Aims}
@@ -51,7 +53,7 @@
 \begin{frame}{\enquote{Correspondence analysis is PCA for categorical data}}
   \begin{itemize}
     \item In a large, multi-variate data set, we often use PCA to identify which parts of the data provide the best low-dimensional description of the data.
-    \item This relies on the data being \textit{ordered}, which is trivially true for nominal data, and a reasonable reach for binary data - but what about categorical data?
+    \item This relies on the data being \textit{ordered}, which is trivially true for numerical data, and a reasonable reach for binary data - but what about categorical data?
   \end{itemize}
 \end{frame}
 
@@ -71,8 +73,8 @@
 
 \begin{frame}{Extending this to higher dimensions}
   \begin{itemize}
-    \item The key point that lets up represent the mobility data on a traingle like this is that the category counts (proportions) have to sum up to 1.
-    \item Effectively, this is transforming our \textit{categorical data} into textit{compositional data}.
+    \item The key point that lets us represent the mobility data on a triangle like this is that the category counts (proportions) have to sum up to 1.
+    \item Effectively, this is transforming our \textit{categorical data} into \textit{compositional data}.
     \item As a result, we lose a \textbf{degree of freedom} compared to representing these as distances along orthogonal axes, and consequently we can display $N$ categories in only $N-1$ dimensions. 
   \end{itemize}
   \begin{figure}
@@ -124,7 +126,7 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Correspondence analysis geometry 1}
+\begin{frame}{Correspondence analysis geometry}
     Returning to the hair/eye color example, consider the origin point: in CA, this represents simultaneously the \textit{average row profile} \textbf{and} the \textit{average column profile}.
     \begin{figure}
         \begin{subfigure}[t]{0.4\textwidth}
@@ -204,10 +206,68 @@
 \end{frame}
 
 \begin{frame}{Multiple correspondence analysis}
-    Multiple correspondence analysis (MCA) generalizes this to multiple, connected \enquote{survey questions}.
+    Multiple correspondence analysis (MCA) generalizes this to multiple, connected \enquote{survey questions}, where a single contingency table no longer makes sense.
+
+    This is achieved by creating an \textbf{indicator matrix} from the data, which means for each \textit{participant} marking presence/absence for each \textit{response} to each \textit{question}.
+
+    \vspace{0.5em}
+    {\centering\scriptsize
+    \begin{tabular}{l|ccc|ccc|ccc}
+        & \multicolumn{3}{c|}{\textbf{Q1}} & \multicolumn{3}{c|}{\textbf{Q2}} & \multicolumn{3}{c}{\textbf{Q3}} \\
+        & Y & N & U & Y & N & U & Y & N & U \\
+        \hline
+        P1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 \\
+        P2 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 \\
+        P3 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 \\
+        P4 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 \\
+        P5 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 \\
+    \end{tabular}\par}
+
+	Then, the CA is performed on this new data matrix, as though it were the contingency table from before.
 \end{frame}
 
-\begin{frame}{References}
+\begin{frame}{Example 3: Class and cultural division in the UK}
+    \textcite{lerouxClassCulturalDivision2008} use MCA to argue that social class remains culturally relevant in the UK (in the late noughties) - here, we reconstruct a subset of their analysis.
+    \begin{itemize}
+    	\item \textit{Cultural Class and Social Exclusion (CCSE)} survey \parencite{brownCulturalCapitalSocial1995}, from which they use 198 modalities: 61 for \enquote{participation} and 137 for \enquote{taste}.
+		\item We can repeat the analysis based on the \enquote{taste} part of the data (part of the \texttt{soc.ca} R package!)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Example 3 cont.}
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.7\textwidth]{../active_taste_cols.pdf}
+		\caption{Multiple correspondence analysis on taste survey data from the UK.}
+	\end{figure}
+\end{frame}
+
+\begin{frame}{Supplementary variable analysis}
+	\begin{itemize}
+		\item The final thing we will look at today is adding \textit{supplementary variables} to the biplot.
+		\item These are variables that are coded in the original data, but we want to exclude from the part of the analysis that forms the geometry of the space.
+		\item Hence, these variables are pure overlays.
+	\end{itemize}
+	In our case, we also have data for participant \textbf{age} and \textbf{annual income}. To calculate where these should lie on the plot, we simply take the average of all the row points (participants) that correspond to that category.
+\end{frame}
+
+\begin{frame}{Age and income as supplementary variables}
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.6\textwidth]{../supp_taste_cols.pdf}
+		\caption{Age and income as supplementary variables on the taste MCA. An extension of this would be to consider \textbf{canonical correspondence analysis} which would construct the axes from these variables.}
+	\end{figure}
+\end{frame}
+
+\begin{frame}{Summary}
+	\begin{enumerate}
+	  \item Correspondence analysis explains the variance in categorical data in a way that is more statistically meaningful than PCA by describing departure from independence.
+	  \item Independence is at the origin; rare points are far out; statistically equivalent points are close together.
+	  \item This generalizes well to multiple variables with multiple correspondence analysis.
+	\end{enumerate}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
   \printbibliography[heading=none]
 \end{frame}
 
