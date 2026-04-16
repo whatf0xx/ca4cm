@@ -50,32 +50,28 @@ if __name__ == "__main__":
     ax3d.set_xlabel(f"Dim 1 ({pct1} variance)")
     ax3d.set_ylabel(f"Dim 2 ({pct2} variance)")
     ax3d.set_zlabel(f"Dim 3 ({pct3} variance)")
-    fig3d.savefig("3d_proj.pdf", bbox_inches="tight")
+    fig3d.savefig("3d_proj.pdf", transparent=True)
 
     fig, ax = plt.subplots(layout="constrained")
     
-    dim3_vals = [col[2] for _, col in col_coords.iterrows()]
-    var3 = np.var(dim3_vals)
-    def _alpha(z):
-        return float(np.exp(-z**2 / (2 * var3)))
-
     for label, col in col_coords.iterrows():
-        ax.scatter(*col.iloc[:2], color=colors[label], marker="D", s=60, zorder=5, alpha=_alpha(col[2]))
-        ax.text(*col.iloc[:2], f"  {label}", color=colors[label], fontsize=9, alpha=_alpha(col[2]))
+        ax.scatter(*col.iloc[:2], color=colors[label], marker="D", s=60, zorder=5)
+        ax.text(*col.iloc[:2], f"  {label}", color=colors[label], fontsize=9)
 
     # Connect every pair of vertices with thin dark grey lines
     for (l1, (x1, y1, z1)), (l2, (x2, y2, z2)) in combinations(col_coords.iterrows(), 2):
-        ax.plot([x1, x2], [y1, y2], color="#333333", linewidth=0.8, zorder=1,
-                alpha=min(_alpha(z1), _alpha(z2)))
-
+        ax.plot([x1, x2], [y1, y2], color="#333333", linewidth=0.8, zorder=1)
     # Row points inside the tetrahedron
     for label, row in row_coords.iterrows():
         x, y, z = row
         ax.scatter(*row.iloc[:2], color=colors[label], s=60, zorder=5)
         ax.text(*row.iloc[:2], f"  {label}", color=colors[label], fontsize=9)
 
+    ax.axvline(0, lw=0.7, color="gray")
+    ax.axhline(0, lw=0.7, color="gray")
     ax.set_xlabel(f"Dim 1 ({pct1} variance)")
     ax.set_ylabel(f"Dim 2 ({pct2} variance)")
+    fig.savefig("2d-color.pdf", bbox_inches="tight", transparent=True)
     
 
     plt.show()

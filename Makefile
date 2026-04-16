@@ -3,5 +3,5 @@
 slides:
 	$(MAKE) -C slides
 
-clean-slides:
+clean:
 	$(MAKE) -C slides clean

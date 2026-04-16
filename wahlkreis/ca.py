@@ -34,11 +34,6 @@ if __name__ == "__main__":
     print(ca.eigenvalues_summary)
     pct1, pct2 = ca.percentage_of_variance_[:2]
 
-    eigs = ca.eigenvalues_[:2]
-    # col_coords = ca.column_coordinates(ct).iloc[:, :2] / eigs**0.5
-    col_coords = ca.column_coordinates(ct).iloc[:, :2]
-    row_coords = ca.row_coordinates(ct).iloc[:, :2]
-
     # Column points: parties
     # Keys match the latin-1-decoded column names (byte 0x96 = en-dash surrogate)
     party_info = {
@@ -89,30 +84,86 @@ if __name__ == "__main__":
     bezirk_colors = {k: v["color"] for k, v in bezirk_info.items()}
     bezirk_nums   = {k: v["number"] for k, v in bezirk_info.items()}
 
-    plt.figure()
-    plt.xlabel(f"Dimension 1 ({pct1:.1f}% inertia)")
-    plt.ylabel(f"Dimension 2 ({pct2:.1f}% inertia)")
+    # first, asymmetric biplot in terms of party columns
+    eigs = ca.eigenvalues_[:2]
+    col_coords = ca.column_coordinates(ct).iloc[:, :2] / eigs**0.5
+    col_coords = ca.column_coordinates(ct).iloc[:, :2]
+    # row_coords = ca.row_coordinates(ct).iloc[:, :2]
 
+    fig, axs = plt.subplots(1, 2, figsize=(10, 3.5), layout="constrained")
+    fig.supxlabel(f"Dimension 1 ({pct1:.1f}% variance)")
+    fig.supylabel(f"Dimension 2 ({pct2:.1f}% variance)")
+    for i, ax in enumerate(axs):
+        if i == 0:
+            title = "Asymmetric biplot, columns are parties"
+        else:
+            title = "Asymmetric biplot, columns are Bezirke"
+        ax.set_title(title)
+
+        eigs = ca.eigenvalues_[:2]
+        if i == 0:
+            # first, asymmetric biplot in terms of party columns
+            col_coords = ca.column_coordinates(ct).iloc[:, :2] / eigs**0.5
+            row_coords = ca.row_coordinates(ct).iloc[:, :2]
+        else:
+            # then, asymmetric biplot in terms of district columns
+            col_coords = ca.column_coordinates(ct).iloc[:, :2] 
+            row_coords = ca.row_coordinates(ct).iloc[:, :2] / eigs**0.5
+            
+            
+        for label, coords in col_coords.iterrows():
+            ax.scatter(*coords, color=colors[label], marker="D", s=60, zorder=5)
+            ax.text(*(coords+ [0.01, 0.005]), abbrevs[label], color=colors[label], fontsize=9)
+
+        for label, coords in row_coords.iterrows():
+            ax.scatter(
+                    *coords,
+                    color=bezirk_info[label]["color"],
+                    alpha=0.8,
+                    s=60,
+                    zorder=5,
+                )
+            ax.text(
+                    *(coords+ [0.01, 0.005]),
+                    f"{label} ({bezirk_info[label]['number']})",
+                    color=bezirk_info[label]["color"],
+                    fontsize=9,
+                )
+
+        ax.axhline(0, lw=0.8, color="gray")
+        ax.axvline(0, lw=0.8, color="gray")
+
+    fig.savefig("wahlkreis_asymmetric.pdf", transparent=True)
+    plt.close("all")
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+
+    # we can also use a symmetric biplot
+    col_coords = ca.column_coordinates(ct).iloc[:, :2] 
+    row_coords = ca.row_coordinates(ct).iloc[:, :2]
     for label, coords in col_coords.iterrows():
-        plt.scatter(*coords, color=colors[label], marker="D", s=60, zorder=5)
-        plt.text(*(coords+ [0.01, 0.005]), abbrevs[label], color=colors[label], fontsize=9)
+        ax.scatter(*coords, color=colors[label], marker="D", s=60, zorder=5)
+        ax.text(*(coords+ [0.01, 0.005]), abbrevs[label], color=colors[label], fontsize=9)
 
     for label, coords in row_coords.iterrows():
-        plt.scatter(
+        ax.scatter(
                 *coords,
                 color=bezirk_info[label]["color"],
                 alpha=0.8,
                 s=60,
                 zorder=5,
             )
-        plt.text(
+        ax.text(
                 *(coords+ [0.01, 0.005]),
                 f"{label} ({bezirk_info[label]['number']})",
                 color=bezirk_info[label]["color"],
                 fontsize=9,
             )
 
-    plt.axhline(0, lw=0.8, color="gray")
-    plt.axvline(0, lw=0.8, color="gray")
+    ax.axhline(0, lw=0.8, color="gray")
+    ax.axvline(0, lw=0.8, color="gray")
+    ax.set_xlabel(f"Dimension 1 ({pct1:.1f}% variance)")
+    ax.set_ylabel(f"Dimension 2 ({pct2:.1f}% variance)")
+    fig.savefig("symmetric_wahlkreis.pdf", transparent=True, bbox_inches="tight")
 
     plt.show()

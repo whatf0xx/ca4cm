@@ -4,6 +4,7 @@
 \usepackage{csquotes}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{subcaption}
 \usepackage[backend=biber, style=authoryear]{biblatex}
 
 \newcommand{\tocentry}[3]{%
@@ -38,7 +39,14 @@
   \tocentry{4}{Multiple correspondence analysis}{3 min}
 \end{frame}
 
-\section{What is Correspondence Analysis?}
+\begin{frame}{Introduction \& Aims}
+  \begin{itemize}
+    \item In this short tutorial I want to give an overview of how correspondence analysis can be helpful for understanding categorical/compositional data.
+    \item I am skipping all of the maths and as much of the theory as possible in order to focus on some intuition for the CA results, as well as to get through some informative examples.
+    \item If you want to know more, I strongly recommend the textbook \textit{Correspondence Analysis in Practice, Third Edition} by Michael Greenacre\nocite{greenacre2017}.
+    \item All the code for the examples, including the source for these slides, is in a public GitHub repository, here: \url{https://github.com/whatf0xx/ca4cm}.
+  \end{itemize}
+\end{frame}
 
 \begin{frame}{\enquote{Correspondence analysis is PCA for categorical data}}
   \begin{itemize}
@@ -89,6 +97,114 @@
     \end{tabular}
     \caption{Hair and eye colour counts ($n = 592$). Data from \parencite{sneeGraphicalDisplayTwoWay1974}.}
   \end{table}
+\end{frame}
+
+\begin{frame}{Example 1: hair and eye color (cont.)}
+  \begin{figure}
+    \begin{subfigure}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../3d_proj.pdf}
+      \caption{The full 3D space occupied by the data.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{../2d-color.pdf}
+      \caption{The first two dimensions describe the data almost completely.}
+    \end{subfigure}
+    \caption{Correspondence analysis of the hair/eye color data.}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Key features of correspondence analysis}
+    \begin{itemize}
+        \item The correspondence analysis (CA) gives the representation of the data \textit{rows} within the simplex formed by the \textit{column} points.
+        \item From this, just like with PCA, we can then find the most descriptive dimensions within the data.
+        \item However, the CA also does some extra work for us, by deforming the geometry of the space where the data lives.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Correspondence analysis geometry 1}
+    Returning to the hair/eye color example, consider the origin point: in CA, this represents simultaneously the \textit{average row profile} \textbf{and} the \textit{average column profile}.
+    \begin{figure}
+        \begin{subfigure}[t]{0.4\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../2d-color.pdf}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[t]{0.45\textwidth}
+            \centering
+            \vspace{-3.5cm}
+            \footnotesize
+            \begin{tabular}{lrrrr}
+              \toprule
+              & \textbf{Brown} & \textbf{Blue} & \textbf{Hazel} & \textbf{Green} \\
+              \midrule
+              \textbf{Black} & 68 & 20 & 15 & 5 \\
+              \textbf{Brown} & 119 & 84 & 54 & 29 \\
+              \textbf{Red}   & 26 & 17 & 14 & 14 \\
+              \textbf{Blond} & 7 & 94 & 10 & 16 \\
+              \bottomrule
+            \end{tabular}
+        \end{subfigure}
+    \end{figure}
+    So \textit{row points} (i.e. hair colors) close to the origin have a close-to-average \textit{column profile}: knowing this hair color tells you little more than the average for predicting eye color.
+\end{frame}
+
+\begin{frame}{Example 2: Vienna election results (2024)}
+    \begin{itemize}
+        \item Now we will consider a more complicated example: the Vienna national elections in 2024, broken down by city district (\textit{Bezirk}).
+        \item This is ideal for CA because we have a natural contingency table of \textit{Bezirk} - voting profile.
+    \end{itemize} 
+    \begin{table}
+      \centering
+      \footnotesize
+      \begin{tabular}{rlrrrrr}
+        \toprule
+        \textbf{No.} & \textbf{Bezirk} & \textbf{ÖVP} & \textbf{SPÖ} & \textbf{FPÖ} & \textbf{Grüne} & \textbf{NEOS} \\
+        \midrule
+        1  & Innere Stadt  &  2{,}604 &  1{,}614 &  1{,}231 &  1{,}024 &  1{,}604 \\
+        2  & Leopoldstadt  &  5{,}751 & 13{,}999 &  6{,}332 &  7{,}326 &  4{,}983 \\
+        10 & Favoriten     & 10{,}149 & 21{,}734 & 17{,}944 &  4{,}616 &  4{,}873 \\
+        11 & Simmering     &  5{,}394 & 11{,}880 & 11{,}605 &  2{,}030 &  2{,}409 \\
+        13 & Hietzing      &  7{,}762 &  6{,}261 &  4{,}709 &  4{,}006 &  4{,}731 \\
+        19 & Döbling       &  9{,}261 &  8{,}091 &  5{,}811 &  4{,}118 &  5{,}693 \\
+        21 & Floridsdorf   & 12{,}450 & 21{,}542 & 21{,}717 &  5{,}093 &  6{,}162 \\
+        \bottomrule
+      \end{tabular}
+      \caption{Vote counts by district in Vienna, Nationalratswahl 2024.}
+    \end{table}
+\end{frame}
+
+\begin{frame}{Example 2: Vienna election results (2024) (cont.)}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{../wahlkreis_asymmetric.pdf}
+        \caption{Asymmetric biplots (columns are vertices, rows are points inside) become hard to interpret once we have row points that sit very close to the average profile in most cases.}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Symmetric biplots}
+    Instead of plotting the columns as the vertices of a simplex and the rows as points within it, we can treat both as though they are on the same \enquote{scale}.
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.58\textwidth]{../symmetric_wahlkreis.pdf}
+        \caption{Symmetric biplot of the voting data. Similar rows (\textit{Bezirke}) are close together, as are similar columns (parties), but row-column distances are less meaningful than before.}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{CA recap}
+    \begin{itemize}
+        \item When we have \textit{compositional} data (i.e. counts of categorical data) in a contingency table, we can represent row profiles as points within a simplex formed of the columns of the table.
+        \item CA does some extra work for us at this step, by centering the origin to the \textbf{average profile}.
+        \item This also means distance from the origin reflects deviation from independence: points far out are informative about structure.
+        \item Points that are close together in the CA are statistically equivalent (i.e. Mariahilf and Neubau have similar voting patterns; being brown vs. black haired doesn't help you guess eye color).
+        \item CA results are displayed on asymmetric or symmetric biplots depending on the data and what the author wants to communicate.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Multiple correspondence analysis}
+    Multiple correspondence analysis (MCA) generalizes this to multiple, connected \enquote{survey questions}.
 \end{frame}
 
 \begin{frame}{References}
