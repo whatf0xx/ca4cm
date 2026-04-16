@@ -59,3 +59,5 @@ make
 - **Greenacre, M.** (2017). *Correspondence Analysis in Practice, Third Edition.* Chapman & Hall / CRC Press.
 
 - **Le Roux, B., Rouanet, H., Savage, M., & Warde, A.** (2008). Class and Cultural Division in the UK. *Sociology*, 42(6), 1049–1071.
+
+(A few more are given at the end of the slide deck)
